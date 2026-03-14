@@ -1,0 +1,24 @@
+name: Check version
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check version is not already tagged
+        run: |
+          VERSION=$(grep '^version' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "Version in PR: v${VERSION}"
+          if git tag | grep -q "^v${VERSION}$"; then
+            echo "::error::Tag v${VERSION} already exists. Bump the version before merging."
+            exit 1
+          fi
+          echo "v${VERSION} is new ✓"
